@@ -67,7 +67,10 @@ tests:
 # run project
 run:
     #!pwsh
-    python run.py
+    conda activate webdev
+    start python run.py 
+    cd src
+    start nginx
 
 # exit just file
 exit:

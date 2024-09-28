@@ -51,6 +51,10 @@ class File(db.Model):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+@app.route('/test')
+def test_connection():
+    return "connected"
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
