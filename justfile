@@ -62,6 +62,7 @@ exe file_name:
 # run python unit test 
 tests:
     #!pwsh
+    conda activate webdev
     python -m unittest discover -s tests
 
 # run project
@@ -69,11 +70,11 @@ run:
     #!pwsh
     conda activate webdev
     start python run.py 
-    cd src
+    set-Location src
     start nginx
 
 # exit just file
-exit:
+quit:
     #!pwsh
     write-Host "Copyright © 2024 Charudatta"
     Write-Host "email contact: 152109007c@gmailcom"

@@ -1,4 +1,4 @@
-# This file is part of [Your Project Name]
+# This file is part of OneTimeFileSharing 
 #
 # Copyright (C) 2024 Charudatta
 #
