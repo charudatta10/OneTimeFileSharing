@@ -31,11 +31,6 @@ init:
     Add-LicenseHeader
     7z a archives.7z .gitignore
 
-# set configuration variables
-config:
-    #!pwsh
-    SetEnvVar
-
 # add documentation to repo
 docs:
     #!pwsh

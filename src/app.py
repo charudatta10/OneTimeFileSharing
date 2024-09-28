@@ -23,11 +23,14 @@ from Crypto.Random import get_random_bytes
 import os
 import uuid
 from flask_migrate import Migrate
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
-app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
+app.config['UPLOAD_FOLDER'] = os.getenv('UPLOAD_FOLDER')
 db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
