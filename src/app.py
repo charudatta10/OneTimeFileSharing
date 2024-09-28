@@ -24,8 +24,14 @@ import os
 import uuid
 from flask_migrate import Migrate
 from dotenv import load_dotenv
+import logging
 
+# Load environment variables
 load_dotenv()
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
@@ -56,6 +62,7 @@ def load_user(user_id):
 
 @app.route('/test')
 def test_connection():
+    logger.info("Test connection endpoint was accessed")
     return "connected"
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -67,6 +74,7 @@ def register():
         new_user = User(username=username, password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
+        logger.info(f"New user registered: {username}")
         flash('Registration successful! Please log in.', 'success')
         return redirect(url_for('login'))
     return render_template('register.html')
@@ -79,14 +87,17 @@ def login():
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
             login_user(user)
+            logger.info(f"User logged in: {username}")
             return redirect(url_for('upload_file'))
         else:
+            logger.warning(f"Failed login attempt for username: {username}")
             flash('Login Unsuccessful. Please check username and password', 'danger')
     return render_template('login.html')
 
 @app.route('/logout')
 @login_required
 def logout():
+    logger.info(f"User logged out: {current_user.username}")
     logout_user()
     return redirect(url_for('login'))
 
@@ -95,9 +106,11 @@ def logout():
 def upload_file():
     if request.method == 'POST':
         if 'file' not in request.files:
+            logger.error("No file part in the request")
             return 'No file part', 400
         file = request.files['file']
         if file.filename == '':
+            logger.error("No selected file")
             return 'No selected file', 400
         if file:
             file_id = str(uuid.uuid4())
@@ -107,6 +120,7 @@ def upload_file():
             ciphertext, tag = cipher.encrypt_and_digest(file.read())
             with open(file_path, 'wb') as f:
                 [f.write(x) for x in (cipher.nonce, tag, ciphertext)]
+            logger.info(f"File uploaded: {file.filename} by user: {current_user.username}")
             return {'file_id': file_id, 'key': key.hex()}, 201
     return render_template('upload.html')
 
@@ -117,12 +131,18 @@ def download_file(file_id, key):
         with open(file_path, 'rb') as f:
             nonce, tag, ciphertext = [f.read(x) for x in (16, 16, -1)]
         cipher = AES.new(bytes.fromhex(key), AES.MODE_EAX, nonce=nonce)
-        data = cipher.decrypt_and_verify(ciphertext, tag)
-        os.remove(file_path)
-        return data, 200, {'Content-Disposition': 'attachment; filename="downloaded_file"'}
+        try:
+            plaintext = cipher.decrypt_and_verify(ciphertext, tag)
+            os.remove(file_path)
+            logger.info(f"File downloaded: {file_id} by user: {current_user.username}")
+            return send_file(io.BytesIO(plaintext), attachment_filename='downloaded_file', as_attachment=True)
+        except ValueError:
+            logger.error("Key incorrect or message corrupted")
+            return 'Key incorrect or message corrupted', 400
     else:
-        return 'File not found', 404
-
+        logger.error(f"File not found: {file_id}")
+        return 'File not found', 404   
+ 
 @app.route('/')
 def index():
     return redirect(url_for('login'))
