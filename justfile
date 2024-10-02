@@ -18,18 +18,15 @@
 
 set windows-shell := ["pwsh.exe", "-NoLogo", "-Command"]
 
+env_path := "C:/Users/$env:username/Documents/GitHub"
+
 default:
     @just --choose
 
 # create files and directories
 init:
     #!pwsh
-    git init
-    New-Item -ItemType "file" -Path ".env", ".gitattribute", "run.py", "requirements.txt"
-    New-Item -ItemType "directory" -Path "docs", "src", "tests"
-    gig gen python > .gitignore 
-    Add-LicenseHeader
-    7z a archives.7z .gitignore
+    New-Project.ps1
 
 # add documentation to repo
 docs:
@@ -37,11 +34,11 @@ docs:
     conda activate blog
     python -m mkdocs new .
 
-# genearte and readme to repo    
+# generate and readme to repo    
 readme:
     #!pwsh
     conda activate w
-    python C:/Users/$env:username/Documents/GitHub/readmeGen/main.py
+    python {{env_path}}/readmeGen/main.py
 
 # version control repo with git
 commit message="init":
@@ -57,8 +54,80 @@ exe file_name:
 # run python unit test 
 tests:
     #!pwsh
-    conda activate webdev
     python -m unittest discover -s tests
+
+# exit just file
+quit:
+    #!pwsh
+    write-Host "Copyright © 2024 Charudatta"
+    
+# install dependencies
+install:
+    #!pwsh
+    pip install -r requirements.txt
+
+# lint code
+lint:
+    #!pwsh
+    pylint src/
+    flake8 src/
+
+# format code
+format:
+    #!pwsh
+    black src/
+
+# run security checks
+security:
+    #!pwsh
+    bandit -r src/
+
+# build documentation
+build-docs:
+    #!pwsh
+    mkdocs build
+
+# deploy application
+deploy:
+    #!pwsh
+    git pull origin main --force
+    @test 
+    @security
+    @lint
+    @format
+    @commit
+    git push -u origin main
+
+# setup logging
+setup-logging:
+    #!pwsh
+    Add-Logger.ps1
+
+# view logs
+view-logs:
+    #!pwsh
+    Get-Content -Path "app.log" -Tail 10
+
+# clean up
+clean:
+    #!pwsh
+    Remove-Item -Recurse -Force dist, build, *.egg-info
+
+# check for updates
+update:
+    #!pwsh
+    pip list --outdated
+
+# project mangement add task and todos 
+todos:
+    #!pwsh
+    wic
+
+timeit cmd=start:
+    #!pwsh
+    timetrace {{cmd}} # start, stop, list
+
+# Add custom tasks, enviroment variables
 
 # run project
 run:
@@ -68,15 +137,7 @@ run:
     set-Location src
     start nginx
 
-# exit just file
-quit:
-    #!pwsh
-    write-Host "Copyright © 2024 Charudatta"
-    Write-Host "email contact: 152109007c@gmailcom"
-    Write-Host "Exiting Folder" 
-    [System.IO.Path]::GetFileName($(Get-Location))
 
-# Add custom tasks, enviroment variables
 
 
 
