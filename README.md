@@ -1,6 +1,11 @@
  
 # OneTimeFileSharing
 
+<p align="center">
+  <img src="assets/cover.png" alt="one-time-share" width="800"/>
+</p>
+
+
 One Time File Sharing — upload a file and share a download link that expires after a single download.
 
 ![Version](https://img.shields.io/github/v/release/charudatta10/one-time-share)
